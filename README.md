@@ -1,18 +1,39 @@
-# Salesforce DX Project: Next Steps
+# Astrology Consultation Booking System (Salesforce)
+## 📌 Overview
+A Salesforce-based astrology consultation booking system built using
+Screen Flows and Record-Triggered Flows.
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
+Users submit consultation details through a screen flow.
+Automations handle email notifications, status tracking, and dashboards
+for astrologers.
 
-## How Do You Plan to Deploy Your Changes?
+## 🎯 Features Implemented
+- User Consultation Booking (Screen Flow)
+- Duplicate Submission Prevention
+- Email Notification on Record Creation
+- Status-Based Automation
+- Astrologer Dashboard (List Views)
+- Consultation Lifecycle Tracking
 
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+## 🔄 Automation Details
+### Screen Flow
+- User input form
+- Input validations
+- Prevent multiple submissions
+- Success confirmation screen
 
-## Configure Your Salesforce DX Project
+### Record-Triggered Flows
+- Send consultation email on creation
+- Update Email_Sent__c
+- Update Contacted_Date__c when status changes to Contacted
+- Handle Consultation Done status
+## 📊 Astrologer Dashboard
+- List view showing:
+  - Upcoming consultations
+  - Email Sent = TRUE
+  - Status-based filtering
 
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
-
-## Read All About It
-
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+## 🚀 Future Enhancements
+- Scheduled reminder email
+- Admin notifications
+- Experience Cloud portal
