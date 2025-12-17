@@ -7,6 +7,9 @@
         <locationY>0</locationY>
         <actionName>emailSimple</actionName>
         <actionType>emailSimple</actionType>
+        <connector>
+            <targetReference>Mark_Email_as_Sent</targetReference>
+        </connector>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
             <name>recipientAddresses</name>
@@ -21,22 +24,72 @@
         <inputParameters>
             <name>emailSubject</name>
             <value>
-                <stringValue>Your Astrology Consultation Request</stringValue>
+                <stringValue>Your Astrology Consultation Request Received 🌟</stringValue>
             </value>
         </inputParameters>
         <inputParameters>
             <name>emailBody</name>
             <value>
-                <stringValue>Hello {!$Record.Full_Name__c}
+                <stringValue>Hello {!$Record.Full_Name__c},
 
-Thank you for booking your astrology consultation.
+Thank you for reaching out to Divyam Astrology 🌙✨
 
-Date of Birth: {!$Record.Date_of_Birth__c}
+We have received your consultation request with the following details:
 
-Our astrologer will contact you shortly.
+📅 Date of Birth: {!$Record.Date_of_Birth__c}
+📧 Email: {!$Record.Email__c}
 
-Regards,
-Astrology Team
+Our astrologer will connect with you very soon.
+
+Warm regards,  
+Divyam Astrology Team
+ </stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>recipientId</name>
+        </inputParameters>
+        <inputParameters>
+            <name>relatedRecordId</name>
+            <value>
+                <stringValue></stringValue>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>Send_Reminder_to_Astrologer</name>
+        <label>Send Reminder to Astrologer</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>recipientAddresses</name>
+            <value/>
+        </inputParameters>
+        <inputParameters>
+            <name>composeEmailContent</name>
+            <value>
+                <stringValue>True</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <stringValue>Reminder: New Consultation Pending</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <stringValue>You have a new consultation request pending.
+
+Client Name: {!$Record.Full_Name__c}
+Consultation Time: {!$Record.Consultation_Time__c}
+
+Please contact the client.
 </stringValue>
             </value>
         </inputParameters>
@@ -44,8 +97,8 @@ Astrology Team
     </actionCalls>
     <apiVersion>65.0</apiVersion>
     <decisions>
-        <name>Email_is_not_blank</name>
-        <label>Email is not blank</label>
+        <name>Email_Eligibility_Check</name>
+        <label>Email Eligibility Check</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
@@ -59,10 +112,39 @@ Astrology Team
                     <booleanValue>false</booleanValue>
                 </rightValue>
             </conditions>
+            <conditions>
+                <leftValueReference>$Record.Email_Sent__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
             <connector>
                 <targetReference>Send_Consultation_Email</targetReference>
             </connector>
             <label>Email Provided</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Status_Still_New</name>
+        <label>Status Still New?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Yes_New</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Status__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>New</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Send_Reminder_to_Astrologer</targetReference>
+            </connector>
+            <label>Yes_New</label>
         </rules>
     </decisions>
     <environments>Default</environments>
@@ -87,14 +169,46 @@ Astrology Team
         </value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Mark_Email_as_Sent</name>
+        <label>Mark Email as Sent</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Email_Sent__c</field>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
     <start>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector>
-            <targetReference>Email_is_not_blank</targetReference>
+            <targetReference>Email_Eligibility_Check</targetReference>
         </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Status__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>New</stringValue>
+            </value>
+        </filters>
         <object>Consultation_Booking__c</object>
         <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <name>Reminder_After_24_Hours</name>
+            <connector>
+                <targetReference>Status_Still_New</targetReference>
+            </connector>
+            <label>Reminder After 24 Hours</label>
+            <offsetNumber>1</offsetNumber>
+            <offsetUnit>Minutes</offsetUnit>
+            <recordField>CreatedDate</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Today_s_Upcoming_Consultations</fullName>
+    <columns>Full_Name__c</columns>
+    <columns>Email__c</columns>
+    <columns>Date_of_Birth__c</columns>
+    <columns>Consultation_Time__c</columns>
+    <columns>Status__c</columns>
+    <filterScope>Mine</filterScope>
+    <filters>
+        <field>Email_Sent__c</field>
+        <operation>equals</operation>
+        <value>1</value>
+    </filters>
+    <filters>
+        <field>Consultation_Time__c</field>
+        <operation>greaterOrEqual</operation>
+    </filters>
+    <filters>
+        <field>Status__c</field>
+        <operation>equals</operation>
+        <value>New</value>
+    </filters>
+    <label>Today&apos;s &amp; Upcoming Consultations</label>
+</ListView>

@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>65.0</apiVersion>
+    <decisions>
+        <name>Already_Submitted</name>
+        <label>Already Submitted?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Create_Astrology_Record</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Record_Exists</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Existing_Consultation.Name</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Already_Submitted_req</targetReference>
+            </connector>
+            <label>Record Exists</label>
+        </rules>
+    </decisions>
     <environments>Default</environments>
     <interviewLabel>Astrology_User_Input_Flow {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Astrology User Input Flow</label>
@@ -28,6 +53,9 @@
         <label>Create Astrology Record</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
+        <connector>
+            <targetReference>Success_Message</targetReference>
+        </connector>
         <inputAssignments>
             <field>Date_of_Birth__c</field>
             <value>
@@ -46,19 +74,63 @@
                 <elementReference>Full_Name</elementReference>
             </value>
         </inputAssignments>
+        <inputAssignments>
+            <field>Status__c</field>
+            <value>
+                <stringValue>New</stringValue>
+            </value>
+        </inputAssignments>
         <object>Consultation_Booking__c</object>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordCreates>
+    <recordLookups>
+        <name>Get_Existing_Consultation</name>
+        <label>Get Existing Consultation</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Already_Submitted</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Email__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>Email_Input.value</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Consultation_Booking__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <screens>
+        <name>Already_Submitted_req</name>
+        <label>Already Submitted req</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>true</allowPause>
+        <fields>
+            <name>Duplicate_submission</name>
+            <fieldText>&lt;p&gt;You have already submitted your details.&lt;/p&gt;&lt;p&gt;Our astrologer will contact you soon.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <nextOrFinishButtonLabel>Finish</nextOrFinishButtonLabel>
+        <showFooter>true</showFooter>
+        <showHeader>false</showHeader>
+    </screens>
     <screens>
         <name>Enter_Astrology_Details</name>
         <label>Enter Astrology Details</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
-        <allowBack>true</allowBack>
+        <allowBack>false</allowBack>
         <allowFinish>true</allowFinish>
-        <allowPause>true</allowPause>
+        <allowPause>false</allowPause>
         <connector>
-            <targetReference>Create_Astrology_Record</targetReference>
+            <targetReference>Get_Existing_Consultation</targetReference>
         </connector>
         <fields>
             <name>Full_Name</name>
@@ -67,6 +139,10 @@
             <fieldType>InputField</fieldType>
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>true</isRequired>
+            <validationRule>
+                <errorMessage>&lt;p&gt;Please enter a valid full name (minimum 3 characters).&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;</errorMessage>
+                <formulaExpression>LEN({!Full_Name}) &gt; 3</formulaExpression>
+            </validationRule>
         </fields>
         <fields>
             <name>Email_Input</name>
@@ -81,6 +157,10 @@
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>true</isRequired>
             <storeOutputAutomatically>true</storeOutputAutomatically>
+            <validationRule>
+                <errorMessage>&lt;p&gt;Please enter a valid email address.&lt;/p&gt;</errorMessage>
+                <formulaExpression>CONTAINS ({!Email_Input.value}, &quot;@&quot;)</formulaExpression>
+            </validationRule>
         </fields>
         <fields>
             <name>DOB</name>
@@ -89,6 +169,10 @@
             <fieldType>InputField</fieldType>
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>true</isRequired>
+            <validationRule>
+                <errorMessage>&lt;p&gt;Date of birth cannot be in the future.&lt;/p&gt;</errorMessage>
+                <formulaExpression>{!DOB}&lt; TODAY()</formulaExpression>
+            </validationRule>
         </fields>
         <fields>
             <name>Place_of_Birth</name>
@@ -98,6 +182,32 @@
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>false</isRequired>
         </fields>
+        <fields>
+            <name>Choose_consultation_date</name>
+            <dataType>DateTime</dataType>
+            <fieldText>Choose consultation date</fieldText>
+            <fieldType>InputField</fieldType>
+            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
+            <isRequired>true</isRequired>
+        </fields>
+        <nextOrFinishButtonLabel>Submit</nextOrFinishButtonLabel>
+        <showFooter>true</showFooter>
+        <showHeader>true</showHeader>
+    </screens>
+    <screens>
+        <name>Success_Message</name>
+        <label>Success Message</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <allowBack>false</allowBack>
+        <allowFinish>true</allowFinish>
+        <allowPause>true</allowPause>
+        <fields>
+            <name>Confirmation_Message</name>
+            <fieldText>&lt;p&gt;✅ Thank you for your submission!&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;🔮 Our astrologer will connect with you soon.&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;p&gt;📩 Please check your email for confirmation.&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <nextOrFinishButtonLabel>Done</nextOrFinishButtonLabel>
         <showFooter>true</showFooter>
         <showHeader>true</showHeader>
     </screens>
